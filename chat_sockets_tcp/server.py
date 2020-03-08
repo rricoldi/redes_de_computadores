@@ -1,37 +1,47 @@
 import socket
 from threading import Thread
 
-HOST = '127.0.0.1'  # Endereço IP
-PORT = 8080           # Porta a ser escutada
+IP = '127.0.0.1'  # Endereço IP
+PORTA = 8080           # Porta a ser escutada
 
-def client():
-    print('<' + address[0] + '>')
-    message = connection.recv(1024).decode('utf-8', 'strict')
-    if not message:
-        print('Conexão finalizada!')
-        connection.close()
-    print(' - ' + message)
+def conexao():
+    while True:
+        connection, address = server.accept()
+        lista_de_clientes.append(connection)
+        
+        print('Conexão ativa com ', address)
 
-def server_messages():
-    print('<You>')
-    message = input()
-    if message != 'exit()':
-        connection.send(message.encode('utf-8', 'strict'))
-    return
+        Thread(target=chat, args = (connection, address)).start()
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Criação do socket
+def chat(connection, address):
+    while True:
+        mensagem = connection.recv(1024)
+        
+        if mensagem == bytes("sair()", "utf8"):            
+            lista_de_clientes.remove(connection)
+            connection.close()
+            break
+        
+        mensagem = bytes('<' + address[0] + '> ', 'utf8') + mensagem
 
-server.bind((HOST, PORT))   # Associa ao endereço e à porta designada
-server.listen() # Servidor escutando na porta
+        for cliente in lista_de_clientes:
+            if cliente != connection: 
+                try: 
+                    cliente.send(mensagem)
+                except: 
+                    cliente.close()
 
-while True:
-    connection, address = server.accept()
-    print('Conexão ativa com ', address)
-    break
+    if lista_de_clientes.__len__() == 0:
+        print('Não há clientes ativos!')
 
-t1 = Thread(target=client())
-t2 = Thread(target=server_messages())
-t1.start()
-t2.start()
-t1.join()
-t2.join()
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+server.bind((IP, PORTA))
+server.listen(PORTA)
+
+lista_de_clientes = []
+
+t = Thread(target=conexao())
+t.start()
+
+server.close()
