@@ -1,5 +1,6 @@
 import socket
 import datetime
+import sys
 from threading import Thread
 
 HOST = input('Qual o endereço IP? ')  # Endereço IP que tentará conectar
@@ -17,12 +18,12 @@ def receber():  # Função que recebe as mensagens do servidor e mostra ao clien
 
 def enviar(): # Função que recebe mensagens do cliente e as envia ao servidor
   while True:
+    mensagem = sys.stdin.readline() 
     x = datetime.datetime.now()
-
-    mensagem = input("[" + x.strftime("%H") + ":" + x.strftime("%M") + "] Você > ")
     mensagem = "[" + x.strftime("%H") + ":" + x.strftime("%M") + "] " + nome + " > " + mensagem
 
     server.send(bytes(mensagem, "utf8"))
+    
     if "sair()" in mensagem:  # Caso a mensagem seja "sair()" fecha a conexão
       server.close()
       break

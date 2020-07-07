@@ -2,7 +2,7 @@ import socket
 from threading import Thread
 
 IP = input('Qual o endereço IP? ')  # Endereço IP
-PORTA = int(input('Qual a porta que será escutada?'))      # Porta a ser escutada
+PORTA = int(input('Qual a porta que será escutada? '))      # Porta a ser escutada  
 
 def conexao():  # Função para lidar com conexão de novos clientes
     while True:
@@ -18,6 +18,7 @@ def chat(connection, address):
         mensagem = connection.recv(1024)    # Recebimento de uma mensagem
         
         if bytes("sair()", "utf8") in mensagem: # Casi receba a mensagem sair fechará a conexão e removerá o cliente da lista de clientes            
+            print(address, " saiu do chat!")
             lista_de_clientes.remove(connection)
             connection.close()
             break
