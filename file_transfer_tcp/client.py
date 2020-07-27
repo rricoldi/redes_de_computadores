@@ -1,38 +1,55 @@
 import socket
-import datetime
+import math
 import sys
+import myconstants
+import time
 from threading import Thread
 
 HOST = input('Qual o endereço IP? ')  # Endereço IP que tentará conectar
 PORTA = int(input('Qual a porta que será conectada? '))      # Porta a ser conectada
-nome = input('Digite o nome que será usado no chat: ')
 
 def receber():  # Função que recebe as mensagens do servidor e mostra ao cliente
-    while True:
-        try:
-            mensagem = server.recv(1024).decode("utf8")
-            print(mensagem)
-        except OSError:
-            break
+	while True:
+		try:
+			mensagem = server.recv(1024).decode("utf8")
+			print(mensagem)
+		except OSError:
+			break
 
 
 def enviar(): # Função que recebe mensagens do cliente e as envia ao servidor
-  while True:
-    mensagem = sys.stdin.readline() 
-    x = datetime.datetime.now()
-    mensagem = "[" + x.strftime("%H") + ":" + x.strftime("%M") + "] " + nome + " > " + mensagem
+	nome_arquivo = input('Digite o nome do arquivo a ser enviado: ')
+	arquivo = open(nome_arquivo, "rb")
+	arquivo.seek(0, 2)				#vai para o fim do arquivo
+	tamanho_arquivo = arquivo.tell()
+	arquivo.seek(0)					#retorna o file pointer para o início
 
-    server.send(bytes(mensagem, "utf8"))
-    
-    if "sair()" in mensagem:  # Caso a mensagem seja "sair()" fecha a conexão
-      server.close()
-      break
+	quantidade_pacotes = math.ceil(tamanho_arquivo/(myconstants.tamanho_pacote - 4))
+	contador_pacotes = 0				#incrementa com cada pacote enviado
+	if quantidade_pacotes > myconstants.limite_pacotes:
+		print("Error: file is overwhelmingly large")
+		return
+
+	while contador_pacotes < quantidade_pacotes:
+		cont_bin = bytes(bin(contador_pacotes), encoding='utf8')
+		bytes_lidos = bytes(arquivo.read(myconstants.tamanho_pacote - 4))
+		mensagem = cont_bin[-4:] + bytes_lidos
+		mensagem = bytes(mensagem)
+		server.send(mensagem)
+		contador_pacotes += 1
+
+	arquivo.close()
       
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
 server.connect((HOST, PORTA))  # Conecta ao servidor
 
-print('Para sair use a função sair()\n')
-
-Thread(target=receber).start()  # Threads para receber e enviar ao mesmo tempo
-Thread(target=enviar).start()
+#opcao = input('Envie a palavra AMOR para 4002-8922 e receba dicas diárias no seu celular')
+#if opcao == 'enviar':
+t = Thread(target=enviar)  # Threads para receber e enviar ao mesmo tempo
+Thread(target=receber).start()
+t.start()
+t.join()
+time.sleep(5)
+server.send(bytes("sair", "utf8"))
+#else:
