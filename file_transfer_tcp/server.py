@@ -44,16 +44,16 @@ def conexao():  # Função para lidar com conexão de novos clientes
 			file_size = file_size + package.__len__() - myconstants.tamanho_bytes
 			lista_de_pacotes.append((package_counter, package[myconstants.tamanho_bytes:package.__len__()]))
 		connection.close()
-	# arquivo = open("download.rar", "wb+")
-	# contador_pacotes = 0
-	# while True:
-	# 	for x in lista_de_pacotes:
-	# 		if contador_pacotes == x[0]:
-	# 			contador_pacotes += 1
-	# 			arquivo.write(x[1])
-	# 	if contador_pacotes >= max_pacotes:
-	# 		break
-	# arquivo.close()
+	#arquivo = open("download.rar", "wb+")
+	#contador_pacotes = 0
+	#while True:
+	#	for x in lista_de_pacotes:
+	#		if contador_pacotes == x[0]:
+	#			contador_pacotes += 1
+	#			arquivo.write(x[1])
+	#	if contador_pacotes >= max_pacotes:
+	#		break
+	#arquivo.close()
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
 

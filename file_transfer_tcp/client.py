@@ -27,12 +27,15 @@ def enviar(): # Função que recebe mensagens do cliente e as envia ao servidor
 	tamanho_arquivo = arquivo.tell()
 	arquivo.seek(0)					#retorna o file pointer para o início
 
-	quantidade_pacotes = math.ceil(tamanho_arquivo/(myconstants.tamanho_pacote - myconstants.tamanho_bytes))
+	quantidade_pacotes = math.ceil(tamanho_arquivo/(myconstants.tamanho_pacote - myconstants.tamanho_bytes)) + 1
 	contador_pacotes = 0			#incrementa com cada pacote enviado
 	if quantidade_pacotes > myconstants.limite_pacotes:
 		print("Error: file is overwhelmingly large")
 		return
 	
+	#envia um pacote que espicifica quantos pacotes a mais virão
+	primeiro = "{:0>4}"
+
 	while contador_pacotes < quantidade_pacotes:
 		cont_bin = "{:0>4}".format(str(contador_pacotes))
 		bytes_lidos = bytes(arquivo.read(myconstants.tamanho_pacote - myconstants.tamanho_bytes))
