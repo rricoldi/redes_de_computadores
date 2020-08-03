@@ -27,25 +27,25 @@ def enviar(): # Função que recebe mensagens do cliente e as envia ao servidor
 	tamanho_arquivo = arquivo.tell()
 	arquivo.seek(0)					#retorna o file pointer para o início
 
-	quantidade_pacotes = math.ceil(tamanho_arquivo/(myconstants.tamanho_pacote - myconstants.tamanho_bytes)) + 1
+	quantidade_pacotes = math.ceil(tamanho_arquivo/(myconstants.tamanho_pacote - myconstants.tamanho_bytes))
 	contador_pacotes = 0			#incrementa com cada pacote enviado
 	if quantidade_pacotes > myconstants.limite_pacotes:
 		print("Error: file is overwhelmingly large")
 		return
-	
+
 	#envia um pacote que espicifica quantos pacotes a mais virão
-	primeiro = "{:0>4}"
+	primeiro = "{:0>16}".format(quantidade_pacotes)
+	server.send(bytes(primeiro, "utf8"))
 
 	while contador_pacotes < quantidade_pacotes:
-		cont_bin = "{:0>4}".format(str(contador_pacotes))
+		cont_bin = "{:0>16}".format(str(contador_pacotes))
 		bytes_lidos = bytes(arquivo.read(myconstants.tamanho_pacote - myconstants.tamanho_bytes))
-		mensagem = bytes(cont_bin[-myconstants.tamanho_bytes:], encoding='utf8') + bytes_lidos
-		mensagem = bytes(mensagem)
+		mensagem = b"".join([bytes(cont_bin[-myconstants.tamanho_bytes:], "utf8"), bytes_lidos])
 		server.send(mensagem)
-		contador_pacotes += 1
+		contador_pacotes += 1 
 
 	arquivo.close()
-      
+
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
 server.connect((HOST, PORTA))  # Conecta ao servidor
@@ -56,6 +56,4 @@ t = Thread(target=enviar)  # Threads para receber e enviar ao mesmo tempo
 Thread(target=receber).start()
 t.start()
 t.join()
-time.sleep(myconstants.tempo)
-server.send(bytes("sair", "utf8"))
 #else:
