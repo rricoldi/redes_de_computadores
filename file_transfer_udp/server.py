@@ -1,69 +1,35 @@
 import socket
-import myconstants
-import time
-import math
-from threading import Thread
-
-#IP = input('Qual o endereço IP? ')  # Endereço IP
-#PORTA = int(input('Qual a porta que será escutada? '))      # Porta a ser escutada  
-IP = myconstants.IP
-PORTA = myconstants.PORTA
-
-def bytes_to_int(bytes):
-	result = 0
-	for b in bytes:
-		result = result * 256 + int(b)
-	return result
-
-def atoi(str):
-	result = 0
-	for b in str:
-		result = result * 10 + int(b) - 48
-	return result
-
-def conexao():  # Função para lidar com conexão de novos clientes
-	file_size = 0
-	package_counter = 0
-	packages = 0
-	#sair = False
-
-	connection, address = server.accept()   # Aceitando um novo cliente e recebendo as informações deste        
-	print('Conexão ativa com ', address)
-	package = connection.recv(myconstants.tamanho_bytes)
-	max_pacotes = atoi(package[0:myconstants.tamanho_bytes])
-	print(max_pacotes)
-	connection.send(bytes("response", "utf8"))
-
-	start = time.time()
-	while packages < max_pacotes:
-		package = connection.recv(myconstants.tamanho_pacote)    # Recebimento de uma mensagem
-		packages += 1
-		
-		package_counter = atoi(package[0:myconstants.tamanho_bytes])
-		file_size = file_size + package.__len__() - myconstants.tamanho_bytes
-		lista_de_pacotes[package_counter] = package[myconstants.tamanho_bytes:package.__len__()]
-
-	response = 'finalizado\ntamanho   pacotes   velocidade   tempo total  \n------------------------------------------------\n{:.2f} MB  {}   {} b/s   {:.2f} s'.format(file_size/(1024*1024), str(lista_de_pacotes.__len__()), str(math.ceil((file_size*8)/(time.time() - start))), time.time() - start) 
-	
-	connection.send(bytes(response, "utf8"))
-	connection.close()
+import sys
 
 
-	arquivo = open("download.rar", "wb+")
-	contador_pacotes = 0
-	for contador_pacotes in lista_de_pacotes:
-		arquivo.write(lista_de_pacotes[contador_pacotes])
+# Create a UDP socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-	arquivo.close()
+# Bind the socket to the port
+server_address = ('localhost', 10000)
+print('starting up on {} port {}'.format(*server_address))
+sock.bind(server_address)
 
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Cria o socket
+data, address = sock.recvfrom(4096)
+tamanho = int(data.decode('utf8'))
+print('tamanho do arquivo: {}'.format(tamanho))
+data, address = sock.recvfrom(4096)
 
-server.bind((IP, PORTA))    # Atribui o ip e porta definidos ao socket
-server.listen(PORTA)    # Socket começa a ouvir o endereço
+tamanho_do_pacote = int(data.decode('utf8'))
+print('tamanho do pacote: {}'.format(tamanho_do_pacote))
 
-lista_de_pacotes = dict({})
+bytes_lidos = 0
 
-t = Thread(target=conexao())    # Thread principal
-t.start()
+while bytes_lidos < tamanho:
+    data, address = sock.recvfrom(tamanho_do_pacote)
 
-server.close()  # Finaliza o socket
+    print('received {} bytes from {}'.format(
+        len(data), address))
+        
+    bytes_lidos = bytes_lidos + tamanho_do_pacote
+
+
+    # if data:
+    #     sent = sock.sendto(data, address)
+    #     print('sent {} bytes back to {}'.format(
+    #         sent, address))

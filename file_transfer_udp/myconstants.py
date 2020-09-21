@@ -3,5 +3,5 @@ tamanho_bytes = 16
 limite_pacotes = 9999999999999999
 tempo = 2
 #limite_pacotes = 4294967295		#maior numero representavel por 4 bystecas
-IP = "127.0.0.1"
+IP = ""
 PORTA = 8080
