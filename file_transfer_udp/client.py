@@ -2,6 +2,7 @@ import socket
 import sys
 import myconstants
 import math
+import time
 
 # Create a UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -18,20 +19,27 @@ try:
 	sent = sock.sendto(bytes(nome_arquivo, "utf8"), server_address)
 	sent = sock.sendto(bytes(str(max_pacotes), "utf8"), server_address)
 	sent = sock.sendto(bytes(str(myconstants.tamanho_pacote), "utf8"), server_address)
+	print(max_pacotes)
 	# Send data
-	contador_pacotes = 0
+	contador_pacotes = 1
 
-	while max_pacotes > contador_pacotes:
+	while max_pacotes > contador_pacotes-1:
+		print(format(contador_pacotes, 'x'))
+
 		bytes_lidos = arquivo.read(myconstants.tamanho_pacote - myconstants.tamanho_bytes)
-		message = "{:0>16}".format(format(contador_pacotes, 'b'))
-		message = bytes((message) + (bytes_lidos.decode('utf8')), 'utf8')
+		message_contador = bytes('{:0>{}}'.format(format(contador_pacotes, 'x'), myconstants.tamanho_bytes), 'utf8')
+		message = b"".join([message_contador, bytes_lidos])
 		sock.sendto(message, server_address)
 		contador_pacotes += 1
+		#time.sleep(0.00005)
+	print("pacotes enviados: ", max_pacotes)
 
-    # Receive response
-    # print('waiting to receive')
-    # data, server = sock.recvfrom(4096)
-    # print('received {!r}'.format(data))
+	send_finalizado = bytes('{:0>{}}'.format('0', myconstants.tamanho_bytes), 'utf8')
+	for i in range(5):
+		print('sending null message, attempt ', i)
+		sock.sendto(send_finalizado, server_address)
+		time.sleep(0.1)
+
 
 finally:
     print('closing socket')
