@@ -23,21 +23,43 @@ data, address = sock.recvfrom(4096)
 tamanho_do_pacote = int(data.decode('utf8'))
 print('tamanho de cada pacote: {}'.format(tamanho_do_pacote))
 
+data, address = sock.recvfrom(4096)
+num_pacotes_por_vez = int(data.decode('utf8'))
+
 num_pacotes = 1
 
+arquivo = open("downloaded-{}".format(nome_arquivo), "wb+")
+
 while True:
-    data, address = sock.recvfrom(tamanho_do_pacote + myconstants.tamanho_bytes)
+    contador = 0
+    while(contador < num_pacotes_por_vez):
+        data, address = sock.recvfrom(1016)
+
+        if '0000000000000000' in str(data[:16]):
+            print('null message received, breaking')
+            break
+        lista_de_pacotes[int(str(data)[2:myconstants.tamanho_bytes+2], 16)] = data[myconstants.tamanho_bytes:]
+        contador = contador + 1
+
     if '0000000000000000' in str(data[:16]):
         print('null message received, breaking')
         break
+    
+    contador_pacotes = int(str(data)[2:myconstants.tamanho_bytes+2], 16) - num_pacotes_por_vez
+    while True:
+        escritos = arquivo.write(lista_de_pacotes[contador_pacotes + 1])
+        contador_pacotes = contador_pacotes + 1
+        if(contador_pacotes == int(str(data)[2:myconstants.tamanho_bytes+2], 16)):
+            lista_de_pacotes.clear()
+            break
 
-    # print('received {} bytes from {}'.format(
-    #     len(data), address))
-    print('{}, pacotes: {}'.format(str(data[:16]), num_pacotes))
 
-    lista_de_pacotes[int(str(data)[2:myconstants.tamanho_bytes+2], 16)] = data[myconstants.tamanho_bytes:]
+    sock.sendto(bytes('Recebido', 'utf8 '), address)
 
-    num_pacotes = num_pacotes + 1
+    # print('{}, pacotes: {}'.format(str(data[:16]), num_pacotes))
+
+
+    num_pacotes = num_pacotes + num_pacotes_por_vez
     if num_pacotes-1 >= max_pacote:
         print('all packets received, breaking')
         break
@@ -45,14 +67,12 @@ while True:
 
 
 
-# arquivo = open("downloaded-{}".format(nome_arquivo), "wb+")
-arquivo = open("downloaded{}".format(nome_arquivo[-4:]), "wb+")
-contador_pacotes = 0
-for contador_pacotes in lista_de_pacotes:
-    escritos = arquivo.write(lista_de_pacotes[contador_pacotes])
-    print(escritos, ' caracteres escritos. Pacote ', contador_pacotes)
+# arquivo = open("downloaded{}".format(nome_arquivo[-4:]), "wb+")
+    # contador_pacotes = 0
+    # for contador_pacotes in lista_de_pacotes:
+    #     escritos = arquivo.write(lista_de_pacotes[contador_pacotes])
 
-    # if data:
-    #     sent = sock.sendto(data, address)
-    #     print('sent {} bytes back to {}'.format(
-    #         sent, address))
+    #     # if data:
+    #     #     sent = sock.sendto(data, address)
+    #     #     print('sent {} bytes back to {}'.format(
+    #     #         sent, address))
