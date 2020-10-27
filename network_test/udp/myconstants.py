@@ -1,4 +1,4 @@
-tamanho_pacote = 500	#tamanho dos pacotes, em bytes
+tamanho_pacote = 1000	#tamanho dos pacotes, em bytes
 tamanho_bytes = 16
 limite_pacotes = 9999999999999999
 num_pacotes_por_vez = 4
