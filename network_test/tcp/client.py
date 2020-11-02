@@ -10,14 +10,18 @@ HOST = myconstants.IP
 PORTA = myconstants.PORTA
 
 def upload():
-	bytes_recebidos = 0
+	bytes_totais = 0
 	pacotes = 0
+	erros = 0
 
 	start = time.time()
 	while True:
 		try:
 			mensagem = bytes(bin(random.getrandbits(myconstants.tamanho_pacote)), 'utf8')
-			bytes_recebidos += server.send(mensagem)
+			bytes_enviados = server.send(mensagem)
+			if bytes_enviados == 0:
+				erros += 1
+			bytes_totais += bytes_enviados
 			pacotes += 1
 			mensagem = server.recv(20).decode('utf8')
 			if 'fim-upload' in mensagem:
@@ -26,22 +30,26 @@ def upload():
 			break
 
 	elapsed_time = time.time() - start
-	velocidade = (bytes_recebidos*8/elapsed_time) / 1000000
+	velocidade = (bytes_totais*8/elapsed_time) / 1000000
 	pacotes_seg = math.ceil(pacotes/elapsed_time)
 	print(
-		"pacotes/s    bytes recebidos     velocidade     tempo total\n------------------------------------------------\n{}          {}        {:.2f} Mb/s       {:.2f} s       <==>  UPLOAD".format(
-		pacotes_seg, bytes_recebidos, velocidade, elapsed_time))
+		"pacotes/s    bytes recebidos     velocidade     tempo total   pacotes perdidos\n------------------------------------------------\n{}          {}        {:.2f} Mb/s       {:.2f} s     {}    <==>  UPLOAD".format(
+		pacotes_seg, bytes_totais, velocidade, elapsed_time, erros))
 
 def download():
-	bytes_enviados = 0
+	bytes_totais = 0
 	pacotes = 0
+	erros = 0
 
 	start = time.time()
 	while True:
 		try:
 			mensagem = server.recv(myconstants.tamanho_pacote)
 			mensagem = mensagem.decode('utf8')
-			bytes_enviados += mensagem.__len__()
+			bytes_recebidos = mensagem.__len__()
+			if bytes_recebidos == 0:
+				erros += 1
+			bytes_totais += bytes_recebidos
 			pacotes += 1
 			if 'fim-download' in mensagem:
 				break
@@ -49,11 +57,11 @@ def download():
 			break
 
 	elapsed_time = time.time() - start
-	velocidade = (bytes_enviados * 8 / elapsed_time) / 1000000
+	velocidade = (bytes_totais * 8 / elapsed_time) / 1000000
 	pacotes_seg = math.ceil(pacotes / elapsed_time)
 	print(
-		"------------------------------------------------\n{}          {}        {:.2f} Mb/s       {:.2f} s       <==>  DOWNLOAD".format(
-			pacotes_seg, bytes_enviados, velocidade, elapsed_time))
+		"------------------------------------------------\n{}         {}      {:.2f} Mb/s       {:.2f} s     {}    <==>  DOWNLOAD".format(
+			pacotes_seg, bytes_totais, velocidade, elapsed_time, erros))
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Cria o socket
 server.connect((HOST, PORTA))  # Conecta ao servidor
