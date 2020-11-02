@@ -57,4 +57,4 @@ try:
             break
 except TimeoutError:
     contador_pacotes -= num_pacotes_por_vez
-    
+

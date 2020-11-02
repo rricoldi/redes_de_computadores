@@ -27,18 +27,21 @@ try:
 	# Send data
 	contador_pacotes = 1
 
+	erros = 0
 	while max_pacotes > contador_pacotes-1:
 		try:
 			for i in range(myconstants.num_pacotes_por_vez):
 
 				bytes_lidos = arquivo.read(myconstants.tamanho_pacote - myconstants.tamanho_bytes)
 				message_contador = bytes('{:0>16}'.format(format(contador_pacotes, 'x')), 'utf8') #
+				print(message_contador)
 				message = b"".join([message_contador, bytes_lidos])
 				sock.sendto(message, server_address)
 				contador_pacotes += 1
 			data, address = sock.recvfrom(4096)
 		except TimeoutError:
 			contador_pacotes -= myconstants.num_pacotes_por_vez
+			erros += 1
 
 		#time.sleep(0.00005)
 	print("pacotes enviados: ", max_pacotes)
@@ -55,4 +58,4 @@ finally:
     sock.close()
 
 print('finalizado\ntamanho   pacotes   velocidade   tempo total  \n------------------------------------------------\n{:.2f} MB  {}       {} Mb/s      {:.2f} s'.format(tamanho_arquivo/(1024*1024), str(max_pacotes), str(math.ceil((tamanho_arquivo*8/(1024*1024))/(time.time() - inicio))), time.time() - inicio))
-
+print(erros)
